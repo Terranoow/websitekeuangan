@@ -14,6 +14,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['tombolsubmit'])) {
     $success = $pendapatan->insertPendapatan($nominal, $tanggal, $keterangan);
 }
 
+// Handle Edit operation
+if (isset($_POST['editNominal']) && isset($_POST['editTanggal']) && isset($_POST['editKeterangan']) && isset($_POST['editId'])) {
+    $id = $_POST['editId'];
+    $nominal = $_POST['editNominal'];
+    $tanggal = $_POST['editTanggal'];
+    $keterangan = $_POST['editKeterangan'];
+    
+    // Update Pendapatan record
+    $success = $pendapatan->updatePendapatan($id, $nominal, $tanggal, $keterangan);
+}
+
+// Handle Delete operation
+if (isset($_POST['deleteId'])) {
+    $id = $_POST['deleteId'];
+    
+    // Delete Pendapatan record
+    $success = $pendapatan->deletePendapatan($id);
+}
+
 // Retrieve Pendapatan records
 $pendapatanRecords = $pendapatan->getPendapatan();
 ?>
@@ -25,6 +44,7 @@ $pendapatanRecords = $pendapatan->getPendapatan();
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Pendapatan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -58,7 +78,7 @@ $pendapatanRecords = $pendapatan->getPendapatan();
 
         th {
             background-color: #4CAF50;
-            color: white;
+            color: #45a049;
         }
 
         tr:nth-child(even) {
@@ -166,11 +186,29 @@ $pendapatanRecords = $pendapatan->getPendapatan();
             <?php
             if ($pendapatanRecords) {
                 echo "<table class='table table-striped'>";
-                echo "<thead><tr><th>ID Pendapatan</th><th>Nominal</th><th>Tanggal</th><th>Keterangan</th></tr></thead>";
+                echo "<thead><tr><th>ID Pendapatan</th><th>Jenis</th><th>Nominal</th><th>Tanggal</th><th>Keterangan</th><th>Actions</th></tr></thead>";
                 echo "<tbody>";
 
                 while ($row = $pendapatanRecords->fetch_assoc()) {
-                    echo "<tr><td>" . $row["idpendapatan"] . "</td><td>" . number_format($row["nominal"], 0, ',', '.') . "</td><td>" . date("d-m-Y", strtotime($row["tanggal"])) . "</td><td>" . $row["keterangan"] . "</td></tr>";
+                    echo "<tr>
+                    <td>" . $row["idpendapatan"] . "</td>
+                    <td>" . $row["jnsPendapatan"] . "</td>
+                    <td>" . number_format($row["nominal"], 0, ',', '.') . "</td>
+                    <td>" . date("d-m-Y", strtotime($row["tanggal"])) . "</td>
+                    <td>" . $row["keterangan"] . "</td>
+                    
+                    <!-- Edit Button -->
+                    <td>
+                        <button class='btn btn-warning btn-sm' data-bs-toggle='modal' data-bs-target='#editModal' 
+                            data-id='" . $row["idpendapatan"] . "' 
+                            data-jnsPendapatan='" . $row["jnsPendapatan"] . "'
+                            data-nominal='" . $row["nominal"] . "' 
+                            data-tanggal='" . $row["tanggal"] . "' 
+                            data-keterangan='" . $row["keterangan"] . "'>Edit</button>
+                        <button class='btn btn-danger btn-sm' data-bs-toggle='modal' data-bs-target='#deleteModal' 
+                            data-id='" . $row["idpendapatan"] . "'>Delete</button>
+                    </td>
+                    </tr>";
                 }
 
                 echo "</tbody></table>";
@@ -181,20 +219,91 @@ $pendapatanRecords = $pendapatan->getPendapatan();
         </div>
     </div>
 
-    <footer class="py-4 bg-light mt-auto">
-        <div class="container-fluid px-4">
-            <div class="d-flex align-items-center justify-content-between small">
-                <div class="text-muted">Copyright &copy; Your Website 2023</div>
-                <div>
-                    <a href="#">Privacy Policy</a>
-                    &middot;
-                    <a href="#">Terms & Conditions</a>
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Pendapatan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="">
+                    <div class="mb-3">
+                            <label for="editJenis" class="form-label">Jenis</label>
+                            <input type="text" class="form-control" id="editJenis" name="editJenis" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editNominal" class="form-label">Nominal</label>
+                            <input type="number" class="form-control" id="editNominal" name="editNominal" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTanggal" class="form-label">Tanggal</label>
+                            <input type="date" class="form-control" id="editTanggal" name="editTanggal" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editKeterangan" class="form-label">Keterangan</label>
+                            <input type="text" class="form-control" id="editKeterangan" name="editKeterangan" required>
+                        </div>
+                        <input type="hidden" id="editId" name="editId">
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </form>
                 </div>
             </div>
         </div>
-    </footer>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Delete Pendapatan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this record?</p>
+                </div>
+                <div class="modal-footer">
+                    <form method="POST" action="">
+                        <input type="hidden" id="deleteId" name="deleteId">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+    <!-- JavaScript for handling modals -->
+    <script>
+        // Populate the Edit modal with current data
+        const editModal = document.getElementById('editModal');
+        editModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const jenis  = button.getAttribute('data-jnsPendapatan');
+            const nominal = button.getAttribute('data-nominal');
+            const tanggal = button.getAttribute('data-tanggal');
+            const keterangan = button.getAttribute('data-keterangan');
+
+            document.getElementById('editId').value = id;
+            document.getElementById('editJenis').value = jenis;
+            document.getElementById('editNominal').value = nominal;
+            document.getElementById('editTanggal').value = tanggal;
+            document.getElementById('editKeterangan').value = keterangan;
+        });
+
+        // Populate the Delete modal with the ID to be deleted
+        const deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            document.getElementById('deleteId').value = id;
+        });
+    </script>
 </body>
 </html>

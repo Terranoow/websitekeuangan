@@ -36,6 +36,21 @@ class pendapatanData {
         }
     }
 
+    public function updatePendapatan($id, $nominal, $tanggal, $keterangan, $jenis) {
+        $sql = "UPDATE pendapatan SET nominal = ?, tanggal = ?, keterangan = ?, jnsPendapatan = ? WHERE idpendapatan = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("issi", $nominal, $tanggal, $keterangan, $jenis , $id);
+        return $stmt->execute();
+    }
+    
+    // Delete Pendapatan
+    public function deletePendapatan($id) {
+        $sql = "DELETE FROM pendapatan WHERE idpendapatan = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+        return $stmt->execute();
+    }
+
     // Destructor: Close the connection
     public function __destruct() {
         $this->conn->close();
