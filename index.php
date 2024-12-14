@@ -48,7 +48,7 @@ require 'function.php';
                             <a class="nav-link" href="index.php" > Dashboard</a>
                             <div class="sb-sidenav-menu-heading">Interface</div>
                             <a class="nav-link" href="Pendapatan.php" > Pendapatan</a>
-                            <a class="nav-link" href="pengeluaran.html">Pengeluaran</a>		
+                            <a class="nav-link" href="pengeluaran.php">Pengeluaran</a>		
                             <a class="nav-link" href="lihatpendapatan.php" > Laporan Pendapatan</a>
                             <a class="nav-link" href="lihatpengeluaran.php" > Laporan Pengeluaran</a>		
                             <a class="nav-link" href="layout-static.html" > Prediksi</a>
@@ -76,7 +76,7 @@ require 'function.php';
                                 <div class="card bg-primary text-white mb-4">
                                     <div class="card-body">Pendapatan</div>
                                     <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="nav-link" href="Pendapatan.html" >View Details</a>
+                                        <a class="nav-link" href="Pendapatan.php" >View Details</a>
                                         <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                                     </div>        
                                 </div>
@@ -86,7 +86,7 @@ require 'function.php';
                                 <div class="card bg-warning text-white mb-4">
                                     <div class="card-body">Pengeluaran</div>
                                     <div class="card-footer d-flex align-items-center justify-content-between">
-                                    <a class="nav-link" href="Pengeluaran.html" >View Details</a>
+                                    <a class="nav-link" href="Pengeluaran.php" >View Details</a>
                                         <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                                     </div>
                                 </div>

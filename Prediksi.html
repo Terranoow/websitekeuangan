@@ -9,6 +9,23 @@
         <title>Static Navigation - SB Admin</title>
         <link href="css/styles.css" rel="stylesheet" />
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <style>
+            table {
+                width: 80%;
+                margin: 20px auto;
+                border-collapse: collapse;
+            }
+            th, td {
+                padding: 10px;
+                border: 1px solid #ddd;
+                text-align: center;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+        </style>
     </head>
     <body>
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
@@ -62,25 +79,178 @@
                         <h1 class="mt-4">Prediksi</h1>
                         <div class="card mb-4">
                             <div class="card-body">
-
- <form method="post" action="simpan.php">
-	<label>Mulai Tanggal</label><br>
-	<input type="date" name="date"><br><br>
-	<label>Sampai Tanggal</label><br>
-	<input type="date" name="date"><br><br>
-	<label>Jenis Laporan Keuangan
-
-    </label><br>
-	<input type="name" name="name"><br><br>
-
-
-	<br><br>
-	<input type="submit" value="Tampilkan" name="tombolsubmit">
     
+                                <canvas id="chart" width="400" height="100"></canvas>
 
-                                
-                                
+                                <script>
+                                    // Fetch data from the PHP backend
+                                    fetch('controller/prediksi.php') // Make sure to replace this with the correct path
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            // Extract the data from the response
+                                            const quarters = data.quarters;
+                                            const income = data.income;
+                                            const outcome = data.outcome;
+                                            const income_sma = data.income_sma;
+                                            const outcome_sma = data.outcome_sma;
+                            
+                                            // Create the chart
+                                            const ctx = document.getElementById('chart').getContext('2d');
+                                            const chart = new Chart(ctx, {
+                                                type: 'line', // Set the chart type to 'line'
+                                                data: {
+                                                    labels: quarters, // The quarters will be the labels on the X-axis
+                                                    datasets: [{
+                                                        label: 'Income',
+                                                        data: income,
+                                                        borderColor: 'rgba(75, 192, 192, 1)',
+                                                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                                        fill: false,
+                                                        tension: 0.1
+                                                    }, {
+                                                        label: 'Outcome',
+                                                        data: outcome,
+                                                        borderColor: 'rgba(255, 99, 132, 1)',
+                                                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                                        fill: false,
+                                                        tension: 0.1
+                                                    }, {
+                                                        label: 'Income SMA',
+                                                        data: income_sma,
+                                                        borderColor: 'rgba(153, 102, 255, 1)',
+                                                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                                                        fill: false,
+                                                        tension: 0.1
+                                                    }, {
+                                                        label: 'Outcome SMA',
+                                                        data: outcome_sma,
+                                                        borderColor: 'rgba(255, 159, 64, 1)',
+                                                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                                                        fill: false,
+                                                        tension: 0.1
+                                                    }]
+                                                },
+                                                options: {
+                                                    responsive: true,
+                                                    scales: {
+                                                        x: {
+                                                            title: {
+                                                                display: true,
+                                                                text: 'Quarter'
+                                                            }
+                                                        },
+                                                        y: {
+                                                            title: {
+                                                                display: true,
+                                                                text: 'Amount'
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        })
+                                        .catch(error => console.error('Error fetching data:', error));
+                                </script>
+
+                                <!-- Dropdown for selecting the starting year -->
+                                <div style="text-align:center;">
+                                    <label for="year">Select Year: </label>
+                                    <select id="year" name="year">
+                                        <!-- You can dynamically populate years if needed -->
+                                        <option value="2024">2025</option>
+                                        <option value="2024">2024</option>
+                                        <option value="2023">2023</option>
+                                        <option value="2022">2022</option>
+                                        <!-- Add more years as needed -->
+                                    </select>
+                                    <button id="loadData">Load Forecast</button>
+                                </div>
+
+                                <!-- Table to display the forecast data -->
+                                <table id="forecastTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Year</th>
+                                            <th>Income Forecast</th>
+                                            <th>Outcome Forecast</th>
+                                            <th>Profit Forecast</th>
+                                            <th>Last Year Profit</th>
+                                            <th>Growth Forecast</th>
+                                            <th>Growth Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be populated here -->
+                                    </tbody>
+                                </table>
+
+                                <script>
+                                    $(document).ready(function() {
+                                        $('#loadData').click(function() {
+                                            // Get selected year from the dropdown
+                                            var selectedYear = $('#year').val();
+
+                                            // Make an AJAX request to the PHP script
+                                            $.ajax({
+                                                url: 'controller/movingAverageResult.php',  // Replace with the actual path to your PHP script
+                                                type: 'POST',
+                                                data: { tahun: selectedYear },  // Send selected year as POST data
+                                                dataType: 'json',
+                                                success: function(data) {
+                                                    // Clear the existing table rows
+                                                    $('#forecastTable tbody').empty();
+
+                                                    // Loop through the data and populate the table
+                                                    if (data && data.years.length > 0) {
+                                                        for (var i = 0; i < data.years.length; i++) {
+                                                            var year = data.years[i];
+                                                            var income = data.income[i];
+                                                            var outcome = data.outcome[i];
+                                                            var profit = data.income[i] - data.outcome[i];
+                                                            var lastProfit = data.lastProfit[i];
+                                                            var growth = data.growth[i];
+                                                            var growthStatus = growth < 0 ? 'Penurunan' : 'Kenaikan'; 
+
+                                                            // Add a new row to the table
+                                                            var formatRupiah = new Intl.NumberFormat('id-ID', {
+                                                                style: 'currency',
+                                                                currency: 'IDR'
+                                                            });
+
+                                                            var formattedIncome = formatRupiah.format(income);
+                                                            var formattedOutcome = formatRupiah.format(outcome);
+                                                            var formattedProfit = formatRupiah.format(profit);
+                                                            var formattedLastProfit = formatRupiah.format(lastProfit);
+
+                                                            $('#forecastTable tbody').append(
+                                                                '<tr>' +
+                                                                    '<td>' + year + '</td>' +
+                                                                    '<td>' + formattedIncome + '</td>' +
+                                                                    '<td>' + formattedOutcome  + '</td>' +
+                                                                    '<td>' + formattedProfit + '</td>' +
+                                                                    '<td>' + formattedLastProfit + '</td>' +
+                                                                    '<td>' + (growth / 100).toFixed(2) + '%' + '</td>' +  // Display growth percentage
+                                                                    '<td>' + growthStatus + '</td>' +
+                                                                '</tr>'
+                                                            );
+                                                        }
+                                                    } else {
+                                                        $('#forecastTable tbody').append(
+                                                            '<tr><td colspan="3">No data available for the selected year.</td></tr>'
+                                                        );
+                                                    }
+                                                },
+                                                error: function() {
+                                                    alert('An error occurred while fetching the data.');
+                                                }
+                                            });
+                                        });
+                                    });
+                                </script>
+         
                 </main>
+
+
                 <footer class="py-4 bg-light mt-auto">
                     <div class="container-fluid px-4">
                         <div class="d-flex align-items-center justify-content-between small">
